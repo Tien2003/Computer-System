@@ -58,4 +58,8 @@ CHIP ALU {
 
    Not16(in=result, out=negateResult);
    Mux16(a=result, b=negateResult, sel=no, out=out);
+
+   Or16(in=out, out=orOut);
+   Not(in=orOut, out=zr);
+   ng=out[15];
    }
