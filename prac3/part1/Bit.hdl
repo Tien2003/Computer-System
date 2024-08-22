@@ -15,8 +15,6 @@ CHIP Bit {
 
     PARTS:
     // Put your code here:
-    Mux(a=out, b=in, sel=load, out=outMux);
-
-    // Data Flip-Flop to store the bit
-    DFF(in=outMux, out=out);
+    Mux(a=outDFF, b=in, sel=load, out=outMux);
+    DFF(in=outMux, out=out, out=outDFF);
 }
