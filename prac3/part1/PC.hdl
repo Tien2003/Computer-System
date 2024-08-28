@@ -17,4 +17,15 @@ CHIP PC {
 
     PARTS:
     // Put your code here:
+    Inc16(in=feedBack, out=incOut);
+    Mux16(a=feedBack, b=incOut, sel=inc, out=loadNot);
+
+    //load control
+    Mux16(a=loadNot, b=in, sel=load, out=resetNot);
+
+    //reset control
+    Mux16(a=resetNot, b=false, sel=reset, out=nextOut);
+
+    //16 bits counter
+    Register(in= nextOut, load=true, out=out, out=feedBack);
 }
