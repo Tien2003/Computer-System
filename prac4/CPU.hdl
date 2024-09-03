@@ -40,6 +40,7 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+    //ALU
     Mux16(a=instruction,b=ALUout,sel=instruction[15],out=Ain);
     
     Not(in=instruction[15],out=notinstruction);
@@ -76,5 +77,4 @@ CHIP CPU {
     And(a=j123,b=instruction[15],out=jump);
 
     PC(in=Aout,load=jump,reset=reset,inc=true,out[0..14]=pc);
-
 }
