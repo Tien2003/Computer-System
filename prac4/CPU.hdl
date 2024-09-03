@@ -41,66 +41,41 @@ CHIP CPU {
     PARTS:
     // Put your code here:
     //ALU
-    ALU(x=outD, y=outAM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=outALU ,zr=zr, ng=ng);
-
-    //registers
-    ARegister(in=inA, load=loadA, out=outA, out[0..14]=addressM);
-    DRegister(in=outALU, load=loadD, out=outD);
-    PC(in=outA, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
-
-    //Implement Mux
-    Mux16(a=outALU, b=instruction, sel=instA, out=inA);
-    Mux16(a=outA, b=inM, sel=AMtoALU, out=outAM);
-
-    //Decoder
-    Not(in=instruction[15], out=instA);
-    //loadD
-    And(a=instruction[15], b=instruction[4], out=loadD);
+    Mux16(a=instruction,b=ALUout,sel=instruction[15],out=Ain);
     
-    //loadA
-    And(a=instC, b=instruction[5], out=destA);
-    Or(in=destA, b=instA, out=loadA);
+    Not(in=instruction[15],out=notinstruction);
 
-    //loadPC
-    //checking C instruction
-    Not(in=instA, out=instC);
+    Or(a=notinstruction,b=instruction[5],out=loadA);
+    ARegister(in=Ain,load=loadA,out=Aout,out[0..14]=addressM);
 
-    //j3==1, zr=false, ng=false -> JGT 
-    //positive output
-    Or(a=zr, b=ng, out=temp);
-    Not(in=temp, out=pos);
-    And(a=instruction[0], b=pos, out=JGT);
-    
-    //j2==1, zr==1 -> JEQ
-    And(a=instruction[1], b=zr, out=JEQ);
+    Mux16(a=Aout,b=inM,sel=instruction[12],out=AMout);
 
-    //j1==1, ng=1 -> JLT
-    And(a=instruction[2], b=ng, out=JLT);
+    And(a=instruction[11],b=instruction[15],out=zx);
+    And(a=instruction[10],b=instruction[15],out=nx);
+    Or(a=instruction[9],b=notinstruction,out=zy);
+    Or(a=instruction[8],b=notinstruction,out=ny);
+    And(a=instruction[7],b=instruction[15],out=f);
+    And(a=instruction[6],b=instruction[15],out=no);
 
-    //JGE
-    Or(a=JGT, b=JEQ, out=JGE);
+    ALU(x=Dout,y=AMout,zx=zx,nx=nx,zy=zy,ny=ny,f=f,no=no,out=outM,out=ALUout,zr=zero,ng=neg);
 
-    //JNE
-    Or(a=JGT, b=JLT, out=JNE);
+    And(a=instruction[15],b=instruction[3],out=writeM);
 
-    //JLE
-    Or(a=JLT, b=JEQ, out=JLE);
+    And(a=instruction[15],b=instruction[4],out=loadD);
+    DRegister(in=ALUout,load=loadD,out=Dout);
 
-    //JMP
-    Or(a=JGT, b=, out=JMP);
+    Or(a=zero,b=neg,out=notpos);
+    Not(in=notpos,out=pos);
 
-    Or(a=JGT, b=JEQ, out=J1);
-    Or(a=JLT, b=J1, out=J2);
-    Or(a=JGE, b=J2, out=J3);
-    Or(a=JNE, b=J3, out=J4);
-    Or(a=JMP, b=J4, out=J5);
-    Or(a=JLE, b=J5, out=J6);
+    And(a=instruction[0],b=pos,out=j3);
+    And(a=instruction[1],b=zero,out=j2);
+    And(a=instruction[2],b=neg,out=j1);
 
-    And(a=instC, b=J6, out=loadPC);
+    Or(a=j1,b=j2,out=j12);
+    Or(a=j12,b=j3,out=j123);
 
-    //AMtoALU
-    And(a=instC, b=instruction[12], out=AMtoALU);
-    //loadM 
-    And(a=instC, b=instruction[3], out=loadM, out=writeM);
+    And(a=j123,b=instruction[15],out=jump);
+
+    PC(in=Aout,load=jump,reset=reset,inc=true,out[0..14]=pc);
 
 }
